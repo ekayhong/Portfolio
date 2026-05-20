@@ -1,0 +1,15 @@
+name: Generate slots
+
+on:
+  schedule:
+    - cron: "0 6 15 * *"
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call generate-slots endpoint
+        run: |
+          curl -f -X GET "${{ secrets.APP_URL }}/api/cron/generate-slots" \
+            -H "x-admin-api-key: ${{ secrets.ADMIN_API_KEY }}"
