@@ -1,0 +1,9 @@
+{
+  "responseOverrides": {
+    "/cv/*": {
+      "headers": {
+        "content-disposition": "attachment"
+      }
+    }
+  }
+}

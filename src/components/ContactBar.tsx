@@ -44,12 +44,12 @@ export function ContactBar({ locale }: { locale: "fr" | "en" }) {
           <span className="contact-bar__column-label">{copy.cvCard.title}</span>
           <div className="contact-bar__column-content">
             {env.cvPdfUrl ? (
-              <a className="contact-bar__cv-link" href={env.cvPdfUrl} target="_blank" rel="noreferrer">
+              <a className="contact-bar__cv-link" href={env.cvPdfUrl} target="_blank" rel="noreferrer" download>
                 <IconDownload /> PDF
               </a>
             ) : null}
             {env.cvDocxUrl ? (
-              <a className="contact-bar__cv-link" href={env.cvDocxUrl} target="_blank" rel="noreferrer">
+              <a className="contact-bar__cv-link" href={env.cvDocxUrl} target="_blank" rel="noreferrer" download>
                 <IconDownload /> DOCX
               </a>
             ) : null}

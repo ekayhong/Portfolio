@@ -1,0 +1,77 @@
+# Déploiement & configuration CI/CD
+
+Ce guide décrit les étapes pour configurer les secrets GitHub, créer l'App Registration Azure (OIDC) et exécuter les workflows CI/CD fournis.
+
+Prérequis
+- `gh` (GitHub CLI) installé et connecté
+- `az` (Azure CLI) installé et connecté (pour opérations avancées)
+- Droits suffisants sur l'abonnement Azure pour créer App Registration et assigner des rôles
+
+1) Protéger les secrets (GitHub Secrets)
+
+- Utilise les scripts fournis pour pousser les secrets dans ton repo (interactive):
+
+  Bash:
+
+  ```bash
+  gh auth login
+  ./scripts/set-github-secrets.sh
+  ```
+
+  PowerShell:
+
+  ```powershell
+  gh auth login
+  .\scripts\set-github-secrets.ps1
+  ```
+
+- Comportement par défaut: les scripts **n'écrasent pas** les secrets déjà présents. Ils les ignorent et te le signalent.
+- Pour forcer une mise à jour d'un secret existant:
+  - Bash: `FORCE=true ./scripts/set-github-secrets.sh`
+  - PowerShell: `.
+scripts\set-github-secrets.ps1 -Force`
+
+- Secrets importants à définir:
+  - `MONGODB_URI`, `MONGODB_DATABASE`, `MONGODB_COLLECTION`
+  - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `MAIL_TO`
+  - `ADMIN_API_KEY`
+  - `NEXT_PUBLIC_CV_PDF_URL`, `NEXT_PUBLIC_CV_DOCX_URL` (si externes)
+  - `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` (pour OIDC)
+  - `STATIC_WEBAPP_NAME`, `APP_ARTIFACT_LOCATION`, `STATIC_WEBAPP_RESOURCE_GROUP`
+  - Optionnel: `COSMOS_ADMIN_PASSWORD` (si la création d'un cluster Cosmos est requise)
+
+2) Créer App Registration + Federated Credential (OIDC)
+
+- Portal (recommandé):
+  1. Azure Portal → Azure Active Directory → App registrations → New registration.
+  2. Noter `Application (client) ID` et `Directory (tenant) ID`.
+  3. Azure Portal → Subscriptions or Resource Group → Access control (IAM) → Add role assignment: donner `Contributor` ou un rôle adapté au SP.
+  4. Azure AD → App registrations → ta app → Certificates & secrets → Federated credentials → Add a credential:
+     - Issuer: `GitHub`
+     - Subject: `repo:OWNER/REPO:ref:refs/heads/main` (ou `repo:OWNER/REPO:*` pour plusieurs branches)
+     - Audience: `api://AzureADTokenExchange`
+  5. Copier `client-id` (`AZURE_CLIENT_ID`) et `tenant-id` (`AZURE_TENANT_ID`) dans les Secrets GitHub.
+
+3) Activer et tester les workflows
+
+- Infra (Bicep): utilise le workflow `Deploy Infra (Bicep)` accessible dans `.github/workflows/deploy-infra.yml`. Il utilise OIDC (azure/login) pour s'authentifier.
+
+- Application: deux options:
+  - Action officielle (déjà présente): `.github/workflows/deploy.yml` — pratique et conservée.
+  - Version OIDC (optionnelle): `.github/workflows/deploy-app-oidc.yml` — utilise `azure/login` + `az staticwebapp upload`.
+
+- Pour tester: créer une branche `ci/test`, pousser un commit, ouvrir une PR vers `main` et vérifier les logs des workflows.
+
+4) Conseils sécurité & mise en production
+
+- Ne commite jamais de secrets dans le repo. `.gitignore` contient déjà `infra/bicep/parameters.prod.json` et `.env*`.
+- Si un secret a été committé par erreur: le révoquer/rotate immédiatement et nettoyer l'historique git (BFG/git filter-repo).
+- Pour production durable, migrer les secrets sensibles (MONGODB_URI) vers Azure Key Vault et utiliser Managed Identity + Key Vault references.
+
+5) Support & dépannage rapide
+
+- Si une étape OIDC échoue: vérifier que la `federated credential` a bien le `Subject` exact correspondant à la workflow (owner/repo/ref).
+- Pour afficher les logs d'authentification côté AZ: activer le diagnostic ou exécuter `az account get-access-token` après `azure/login` dans un job de debug.
+
+---
+Pour toute aide, colle ici le log d'erreur Github Actions et je t'aide à corriger.

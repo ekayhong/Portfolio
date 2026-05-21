@@ -24,3 +24,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# infra sensitive parameter files (production/local)
+infra/bicep/parameters.prod.json
+infra/bicep/*.local.parameters.json

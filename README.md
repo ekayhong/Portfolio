@@ -47,6 +47,19 @@ npm install
 
 ```bash
 npm run dev
+
+## Variables d'environnement importantes
+
+Quelques variables à connaître et à configurer avant le déploiement :
+
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` : clé publique Cloudflare Turnstile (exposée au client) pour afficher le widget anti‑bot.
+- `TURNSTILE_SECRET_KEY` : clé privée Turnstile (secret côté serveur) pour vérifier les tokens envoyés par le client. Ne pas committer.
+- **Utilité** : protège les formulaires publics (contact, réservation) contre les soumissions automatisées et le spam en demandant une preuve côté client. Turnstile est léger et respecte la vie privée comparé à certains CAPTCHA, et nécessite une validation côté serveur via `TURNSTILE_SECRET_KEY`.
+- `NEXT_PUBLIC_CV_PDF_URL` / `NEXT_PUBLIC_CV_DOCX_URL` : URL ou chemin relatif vers les fichiers CV (par ex. `/cv/Eric-Kay-Hong-CV.pdf` si les fichiers sont dans `public/cv/`).
+- `ADMIN_API_KEY` : clé secrète utilisée pour protéger les endpoints d'administration (ex. `PUT /api/admin/slots`). Génère une valeur forte et stocke‑la dans GitHub Secrets / Azure Key Vault.
+
+Astuce : pour dev local, copier `.env.example` → `.env.local` et renseigner ces valeurs. Pour la CI/CD, ajoute les valeurs sensibles dans les GitHub Secrets (voir `docs/DEPLOY.md`).
+
 ```
 
  ## Endpoints importants
@@ -61,6 +74,55 @@ npm run dev
  - Données : Azure Cosmos DB (MongoDB API)
  - Assurez-vous de renseigner les variables d'environnement dans la configuration de la ressource Static Web Apps
  - Le workflow `/.github/workflows/deploy.yml` déploie l'application (vérifier qu'il exécute les vérifications souhaitées avant déploiement)
+
+## Cosmos DB : réutilisation du cluster existant
+
+### Pourquoi cette solution a été retenue
+
+- **Coût minimal** : le cluster Cosmos DB for MongoDB (vCore) gratuit est limité (en pratique 1 cluster Free par subscription).
+- **Simplicité opérationnelle** : éviter de multiplier les clusters pour un site CV à faible trafic.
+- **Approche architecture pragmatique** : isolation logique par base/collection/utilisateur applicatif, tout en réutilisant une ressource déjà opérée.
+
+### Fonctionnement actuel (Bicep)
+
+- Le mode par défaut est la **réutilisation d'un cluster existant**, même s'il est dans un autre Resource Group.
+- Paramètres concernés dans `infra/bicep/main.bicep` et `infra/bicep/parameters.json` :
+	- `useExistingCosmos = true`
+	- `existingCosmosResourceGroupName`
+	- `existingCosmosClusterName`
+- Dans ce mode, le module `infra/bicep/modules/cosmos.bicep` n'est pas appelé pour créer un nouveau cluster.
+
+### Tableau comparatif : cluster existant vs nouveau cluster
+
+| Critère | Réutiliser cluster existant | Créer un cluster dans le RG du projet |
+|---|---|---|
+| Coût | Le plus bas (aucune nouvelle instance) | Peut augmenter (Free tier possiblement déjà utilisé) |
+| Isolation infrastructure | Logique (DB/collection/utilisateur) | Physique (ressource dédiée projet) |
+| Complexité opérationnelle | Faible | Plus élevée |
+| Paramètre clé | `useExistingCosmos=true` | `useExistingCosmos=false` |
+| Paramètres requis | `existingCosmosResourceGroupName`, `existingCosmosClusterName` | `cosmosAdminPassword`, `cosmosAdminUsername` |
+| Cas recommandé ici | Oui (site CV, trafic faible) | Seulement si besoin d'isolation forte |
+
+### Si vous voulez créer un cluster Cosmos dans le RG du projet
+
+Modifier les paramètres de déploiement :
+
+- Passer `useExistingCosmos` à `false`
+- Fournir `cosmosAdminPassword` (secret)
+- Garder `cosmosAdminUsername` (ou le personnaliser)
+- Les champs `existingCosmosResourceGroupName` et `existingCosmosClusterName` deviennent inutiles dans ce mode
+
+Exemple de commande (création d'un nouveau cluster) :
+
+```bash
+az deployment sub create \
+	--location francecentral \
+	--template-file infra/bicep/main.bicep \
+	--parameters @infra/bicep/parameters.prod.json \
+	--parameters useExistingCosmos=false cosmosAdminPassword="<MOT_DE_PASSE_FORT>"
+```
+
+Recommandation sécurité : ne jamais committer le mot de passe admin Cosmos dans Git. Injecter ce secret via GitHub Secrets / Azure Key Vault / variables pipeline.
 
  ## Remarques et choix effectués
 

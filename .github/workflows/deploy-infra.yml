@@ -1,0 +1,93 @@
+name: Deploy Infra (Bicep)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        default: prod
+        options:
+          - prod
+          - staging
+      what_if:
+        description: "Run What-If only"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Validate required config
+        shell: bash
+        run: |
+          test -n "${{ vars.BICEP_PREFIX }}" || (echo "Missing vars.BICEP_PREFIX" && exit 1)
+          test -n "${{ vars.COSMOS_EXISTING_RG }}" || (echo "Missing vars.COSMOS_EXISTING_RG" && exit 1)
+          test -n "${{ vars.COSMOS_EXISTING_CLUSTER }}" || (echo "Missing vars.COSMOS_EXISTING_CLUSTER" && exit 1)
+
+      - name: Deploy / What-If (subscription scope)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          LOCATION="${{ vars.AZURE_LOCATION || 'francecentral' }}"
+          PREFIX="${{ vars.BICEP_PREFIX }}"
+          REPO_URL="${{ vars.REPOSITORY_URL || format('https://github.com/{0}', github.repository) }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          USE_EXISTING_COSMOS="${{ vars.USE_EXISTING_COSMOS || 'true' }}"
+          COSMOS_RG="${{ vars.COSMOS_EXISTING_RG }}"
+          COSMOS_CLUSTER="${{ vars.COSMOS_EXISTING_CLUSTER }}"
+          DEPLOY_KV="${{ vars.DEPLOY_KEY_VAULT || 'false' }}"
+
+          # Admin password is only needed when a new Cosmos cluster is created.
+          COSMOS_PASSWORD_ARG=""
+          if [ "${USE_EXISTING_COSMOS}" != "true" ]; then
+            test -n "${{ secrets.COSMOS_ADMIN_PASSWORD }}" || (echo "Missing secrets.COSMOS_ADMIN_PASSWORD while USE_EXISTING_COSMOS=false" && exit 1)
+            COSMOS_PASSWORD_ARG="cosmosAdminPassword=${{ secrets.COSMOS_ADMIN_PASSWORD }}"
+          fi
+
+          COMMON_ARGS=(
+            --location "${LOCATION}"
+            --template-file infra/bicep/main.bicep
+            --parameters
+            prefix="${PREFIX}"
+            location="${LOCATION}"
+            repositoryUrl="${REPO_URL}"
+            env="${ENVIRONMENT}"
+            useExistingCosmos="${USE_EXISTING_COSMOS}"
+            existingCosmosResourceGroupName="${COSMOS_RG}"
+            existingCosmosClusterName="${COSMOS_CLUSTER}"
+            deployKeyVault="${DEPLOY_KV}"
+            tags.project="kayhong"
+            tags.environment="${ENVIRONMENT}"
+            tags.managedBy="github-actions-bicep"
+          )
+
+          if [ -n "${COSMOS_PASSWORD_ARG}" ]; then
+            COMMON_ARGS+=(--parameters "${COSMOS_PASSWORD_ARG}")
+          fi
+
+          if [ "${{ github.event.inputs.what_if }}" = "true" ]; then
+            az deployment sub what-if "${COMMON_ARGS[@]}"
+          else
+            az deployment sub create "${COMMON_ARGS[@]}"
+          fi

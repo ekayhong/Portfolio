@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": { "value": "kayhong" },
+    "location": { "value": "francecentral" },
+    "repositoryUrl": { "value": "https://github.com/OWNER/REPO" },
+    "env": { "value": "prod" },
+    "useExistingCosmos": { "value": true },
+    "existingCosmosResourceGroupName": { "value": "EXISTING-COSMOS-RG" },
+    "existingCosmosClusterName": { "value": "EXISTING-COSMOS-CLUSTER" },
+    "cosmosAdminUsername": { "value": "kayonapp" },
+    "deployKeyVault": { "value": false },
+    "tags": {
+      "value": {
+        "project": "kayhong",
+        "managedBy": "bicep"
+      }
+    }
+  }
+}

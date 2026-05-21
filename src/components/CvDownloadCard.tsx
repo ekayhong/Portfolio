@@ -28,14 +28,14 @@ export function CvDownloadCard({ labels }: Props) {
       </div>
       <div className="cv-block__actions">
         {env.cvPdfUrl ? (
-          <a className="cv-btn" href={env.cvPdfUrl} target="_blank" rel="noreferrer">
+          <a className="cv-btn" href={env.cvPdfUrl} target="_blank" rel="noreferrer" download>
             <IconDownload /> CV PDF
           </a>
         ) : (
           <span style={{ color: "var(--muted-inv)", fontSize: "0.85rem" }}>{labels.pdfMissing}</span>
         )}
         {env.cvDocxUrl ? (
-          <a className="cv-btn" href={env.cvDocxUrl} target="_blank" rel="noreferrer">
+          <a className="cv-btn" href={env.cvDocxUrl} target="_blank" rel="noreferrer" download>
             <IconDownload /> CV DOCX
           </a>
         ) : (
