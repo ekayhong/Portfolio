@@ -57,6 +57,10 @@ jobs:
           COSMOS_RG="${{ vars.COSMOS_EXISTING_RG }}"
           COSMOS_CLUSTER="${{ vars.COSMOS_EXISTING_CLUSTER }}"
           DEPLOY_KV="${{ vars.DEPLOY_KEY_VAULT || 'false' }}"
+          TAGS_JSON="$(cat <<EOF
+          {"project":"kayhong","environment":"${ENVIRONMENT}","managedBy":"github-actions-bicep"}
+EOF
+          )"
 
           # Admin password is only needed when a new Cosmos cluster is created.
           COSMOS_PASSWORD_ARG=""
@@ -77,9 +81,7 @@ jobs:
             existingCosmosResourceGroupName="${COSMOS_RG}"
             existingCosmosClusterName="${COSMOS_CLUSTER}"
             deployKeyVault="${DEPLOY_KV}"
-            tags.project="kayhong"
-            tags.environment="${ENVIRONMENT}"
-            tags.managedBy="github-actions-bicep"
+            tags="${TAGS_JSON}"
           )
 
           if [ -n "${COSMOS_PASSWORD_ARG}" ]; then
