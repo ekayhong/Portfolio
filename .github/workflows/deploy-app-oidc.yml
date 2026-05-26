@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -26,24 +25,16 @@ jobs:
           npm ci
           npm run build
 
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
+      - name: Build and Deploy
+        uses: Azure/static-web-apps-deploy@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Upload artifact to Static Web App
-        env:
-          STATIC_WEBAPP_NAME: ${{ secrets.STATIC_WEBAPP_NAME }}
-          APP_ARTIFACT_LOCATION: ${{ secrets.APP_ARTIFACT_LOCATION }}
-          RESOURCE_GROUP: ${{ secrets.STATIC_WEBAPP_RESOURCE_GROUP }}
-        run: |
-          if [ -z "$STATIC_WEBAPP_NAME" ]; then echo "Missing STATIC_WEBAPP_NAME secret" && exit 1; fi
-          if [ -z "$APP_ARTIFACT_LOCATION" ]; then echo "Missing APP_ARTIFACT_LOCATION secret" && exit 1; fi
-          # Upload built artifact to the target Static Web App
-          az staticwebapp upload --name "$STATIC_WEBAPP_NAME" --resource-group "${RESOURCE_GROUP:-rg-portfolio-prod}" --source "$APP_ARTIFACT_LOCATION"
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: "/"
+          api_location: ""
+          output_location: ""
 
       - name: Print deployed info
         run: |
-          echo "Deployed to static app: ${{ secrets.STATIC_WEBAPP_NAME }}"
+          echo "Deployed to static app with Azure Static Web Apps deploy action"
