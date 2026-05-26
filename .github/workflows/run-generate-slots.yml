@@ -27,5 +27,8 @@ jobs:
             echo "APP_URL secret not set; falling back to ${HOST}"
           fi
 
-          curl -f -X GET "${HOST}/api/cron/generate-slots?year=${YEAR}&month=${MONTH}" \
-            -H "x-admin-api-key: ${{ secrets.ADMIN_API_KEY }}" -v || true
+          curl -sS -w "\nHTTP_STATUS:%{http_code}\n" -X GET "${HOST}/api/cron/generate-slots?year=${YEAR}&month=${MONTH}" \
+            -H "x-admin-api-key: ${{ secrets.ADMIN_API_KEY }}" -o response.json || true
+
+          echo "--- RESPONSE BODY ---"
+          cat response.json || true
