@@ -4,17 +4,22 @@ import { readEnv } from "@/core/infrastructure/config/env";
 
 export class SmtpMailer implements Mailer {
   private transport: nodemailer.Transporter | null = null;
-  private env = readEnv();
+  private env: ReturnType<typeof readEnv> | null = null;
+
+  private getEnv() {
+    return (this.env ??= readEnv());
+  }
 
   private getTransport(): nodemailer.Transporter {
     if (!this.transport) {
+      const env = this.getEnv();
       this.transport = nodemailer.createTransport({
-        host: this.env.smtpHost,
-        port: this.env.smtpPort,
-        secure: this.env.smtpSecure,
+        host: env.smtpHost,
+        port: env.smtpPort,
+        secure: env.smtpSecure,
         auth: {
-          user: this.env.smtpUser,
-          pass: this.env.smtpPass,
+          user: env.smtpUser,
+          pass: env.smtpPass,
         },
       });
     }
@@ -28,17 +33,18 @@ export class SmtpMailer implements Mailer {
     endsAtIso: string;
   }): Promise<void> {
     const transport = this.getTransport();
+    const env = this.getEnv();
 
     await transport.sendMail({
-      from: this.env.mailFrom,
+      from: env.mailFrom,
       to: payload.candidateEmail,
       subject: "Confirmation de reservation d'entretien",
       text: `Bonjour ${payload.candidateName}, votre entretien est confirme du ${payload.startsAtIso} au ${payload.endsAtIso}.`,
     });
 
     await transport.sendMail({
-      from: this.env.mailFrom,
-      to: this.env.mailTo,
+      from: env.mailFrom,
+      to: env.mailTo,
       subject: "Nouvelle reservation recue",
       text: `${payload.candidateName} (${payload.candidateEmail}) a reserve le creneau ${payload.startsAtIso} -> ${payload.endsAtIso}.`,
     });
@@ -51,10 +57,11 @@ export class SmtpMailer implements Mailer {
     message: string;
   }): Promise<void> {
     const transport = this.getTransport();
+    const env = this.getEnv();
 
     await transport.sendMail({
-      from: this.env.mailFrom,
-      to: this.env.mailTo,
+      from: env.mailFrom,
+      to: env.mailTo,
       replyTo: payload.senderEmail,
       subject: payload.subject,
       text: [
