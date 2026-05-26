@@ -4,7 +4,6 @@
   "parameters": {
     "prefix": { "value": "kayhong" },
     "location": { "value": "francecentral" },
-    "repositoryUrl": { "value": "https://github.com/OWNER/REPO" },
     "env": { "value": "prod" },
     "useExistingCosmos": { "value": true },
     "existingCosmosResourceGroupName": { "value": "EXISTING-COSMOS-RG" },

@@ -6,8 +6,6 @@ param prefix string = 'portfolio'
 param resourceGroupName string = ''
 @description('Azure location')
 param location string = 'francecentral'
-@description('Repository URL (optional)')
-param repositoryUrl string = ''
 @description('Environment used by Cosmos firewall rules')
 @allowed(['prod', 'staging'])
 param env string = 'prod'
@@ -73,7 +71,6 @@ module staticApp './modules/staticwebapp.bicep' = {
   params: {
     prefix: prefix
     location: location
-    repositoryUrl: repositoryUrl
   }
 }
 

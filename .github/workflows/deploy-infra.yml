@@ -86,7 +86,6 @@ jobs:
 
           LOCATION="${{ vars.AZURE_LOCATION || 'westeurope' }}"
           PREFIX="${{ vars.BICEP_PREFIX }}"
-          REPO_URL="${{ vars.REPOSITORY_URL || format('https://github.com/{0}', github.repository) }}"
           ENVIRONMENT="${{ github.event.inputs.environment }}"
           USE_EXISTING_COSMOS="${{ vars.USE_EXISTING_COSMOS || 'true' }}"
           COSMOS_RG="${{ vars.COSMOS_EXISTING_RG }}"
@@ -109,7 +108,6 @@ jobs:
             prefix="${PREFIX}"
             resourceGroupName="${RESOURCE_GROUP_NAME}"
             location="${LOCATION}"
-            repositoryUrl="${REPO_URL}"
             env="${ENVIRONMENT}"
             useExistingCosmos="${USE_EXISTING_COSMOS}"
             existingCosmosResourceGroupName="${COSMOS_RG}"
