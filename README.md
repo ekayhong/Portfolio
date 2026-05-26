@@ -47,20 +47,30 @@ npm install
 
 ```bash
 npm run dev
+```
+
+5. Vérifier la configuration d'environnement :
+
+```bash
+npm run env:check
+```
 
 ## Variables d'environnement importantes
 
-Quelques variables à connaître et à configurer avant le déploiement :
+Variables utilisées par l'application (voir `src/core/infrastructure/config/env.ts`) :
 
-- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` : clé publique Cloudflare Turnstile (exposée au client) pour afficher le widget anti‑bot.
-- `TURNSTILE_SECRET_KEY` : clé privée Turnstile (secret côté serveur) pour vérifier les tokens envoyés par le client. Ne pas committer.
-- **Utilité** : protège les formulaires publics (contact, réservation) contre les soumissions automatisées et le spam en demandant une preuve côté client. Turnstile est léger et respecte la vie privée comparé à certains CAPTCHA, et nécessite une validation côté serveur via `TURNSTILE_SECRET_KEY`.
-- `NEXT_PUBLIC_CV_PDF_URL` / `NEXT_PUBLIC_CV_DOCX_URL` : URL ou chemin relatif vers les fichiers CV (par ex. `/cv/Eric-Kay-Hong-CV.pdf` si les fichiers sont dans `public/cv/`).
-- `ADMIN_API_KEY` : clé secrète utilisée pour protéger les endpoints d'administration (ex. `PUT /api/admin/slots`). Génère une valeur forte et stocke‑la dans GitHub Secrets / Azure Key Vault.
+- Requises : `MONGODB_URI`, `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `MAIL_TO`, `ADMIN_API_KEY`
+- Optionnelles avec valeur par défaut :
+	- `MONGODB_DATABASE` (défaut `portfolio`)
+	- `MONGODB_COLLECTION` (défaut `slots`)
+	- `SMTP_PORT` (défaut `587`)
+	- `SMTP_SECURE` (défaut `false`)
+- Optionnelles (features UI / anti-bot) :
+	- `TURNSTILE_SECRET_KEY` (validation serveur Turnstile)
+	- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (clé publique Turnstile côté client)
+	- `NEXT_PUBLIC_CV_PDF_URL`, `NEXT_PUBLIC_CV_DOCX_URL`
 
 Astuce : pour dev local, copier `.env.example` → `.env.local` et renseigner ces valeurs. Pour la CI/CD, ajoute les valeurs sensibles dans les GitHub Secrets (voir `docs/DEPLOY.md`).
-
-```
 
  ## Endpoints importants
 
@@ -129,8 +139,6 @@ Recommandation sécurité : ne jamais committer le mot de passe admin Cosmos dan
  - L'accès à Cosmos DB se fait via l'API Mongo (utilisation du driver `mongodb`) — l'implémentation `CosmosSlotRepository` est fournie.
  - Le container DI assemble les use-cases et adaptateurs depuis `src/core/infrastructure/di/container.ts`.
 
- Si tu veux, je peux : supprimer les fichiers redondants restants (déjà effectué), ajouter une validation stricte des variables d'environnement, ou documenter les variables `.env` requises.
-
 ## Cron / tâches planifiées
 
 Le projet exécute une tâche planifiée pour générer les créneaux (`generate-slots`) via GitHub Actions. Voici l'utilité, le fonctionnement et les points de sécurité à connaître :
@@ -152,8 +160,6 @@ Le projet exécute une tâche planifiée pour générer les créneaux (`generate
 - Vérifier que `src/app/api/cron/generate-slots/route.ts` existe et est protégé.
 - S'assurer que la clé `ADMIN_API_KEY` est suffisamment aléatoire et stockée en secret.
 - Rendre la route idempotente et ajouter logs pour tracer les exécutions (succès/échec).
-
-Si tu veux, je peux convertir ce workflow en un Timer Trigger Azure ou ajouter un exemple de vérification d'idempotence pour l'endpoint.
 
 ## IA et productivité
 

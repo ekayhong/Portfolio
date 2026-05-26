@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "env:check": "tsx scripts/check-env.ts"
   },
   "dependencies": {
     "mongodb": "^7.1.1",
@@ -23,6 +24,7 @@
     "@types/react-dom": "^19.2.2",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.2.3",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }
