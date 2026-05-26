@@ -21,13 +21,31 @@ type PublicEnv = {
   turnstileSiteKey: string;
 };
 
-const boolFromEnv = z
-  .enum(["true", "false"])
-  .transform((value) => value === "true");
+const boolFromEnv = z.preprocess((value) => {
+  if (value === undefined || value === null || value === "") {
+    return false;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  if (["true", "1", "yes", "y", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["false", "0", "no", "n", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return value;
+}, z.boolean());
 
 const envSchema = z.object({
   MONGODB_URI: z
     .string()
+    .trim()
     .min(1, "MONGODB_URI is required")
     .refine(
       (value) => value.startsWith("mongodb://") || value.startsWith("mongodb+srv://"),
@@ -42,7 +60,7 @@ const envSchema = z.object({
     .min(1, "SMTP_PORT must be >= 1")
     .max(65535, "SMTP_PORT must be <= 65535")
     .default(587),
-  SMTP_SECURE: boolFromEnv.default(false),
+  SMTP_SECURE: boolFromEnv,
   SMTP_USER: z.string().min(1, "SMTP_USER is required"),
   SMTP_PASS: z.string().min(1, "SMTP_PASS is required"),
   MAIL_FROM: z.string().min(1, "MAIL_FROM is required").email("MAIL_FROM must be a valid email"),
