@@ -22,5 +22,13 @@ jobs:
 
           echo "Calling generate-slots for ${YEAR}-${MONTH}"
 
-          curl -f -X GET "https://purple-beach-0c5d9ca03.7.azurestaticapps.net/api/cron/generate-slots?year=${YEAR}&month=${MONTH}" \
-            -H "x-admin-api-key: ${{ secrets.ADMIN_API_KEY }}"
+          # Capture response body and status for debugging
+          TMP_FILE=$(mktemp)
+          HTTP_STATUS=$(curl -sS -w "%{http_code}" -o "$TMP_FILE" "https://purple-beach-0c5d9ca03.7.azurestaticapps.net/api/cron/generate-slots?year=${YEAR}&month=${MONTH}" -H "x-admin-api-key: ${{ secrets.ADMIN_API_KEY }}" || true)
+          echo "HTTP status: $HTTP_STATUS"
+          echo "Response body:" && cat "$TMP_FILE" || true
+
+          if [ "${HTTP_STATUS}" -ge 400 ]; then
+            echo "Request failed with status ${HTTP_STATUS}"
+            exit 1
+          fi
