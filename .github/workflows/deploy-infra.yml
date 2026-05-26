@@ -22,7 +22,42 @@ permissions:
   contents: read
 
 jobs:
+  create_resource_group:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Validate required config
+        shell: bash
+        run: |
+          test -n "${{ vars.BICEP_PREFIX }}" || (echo "Missing vars.BICEP_PREFIX" && exit 1)
+          test -n "${{ vars.COSMOS_EXISTING_RG }}" || (echo "Missing vars.COSMOS_EXISTING_RG" && exit 1)
+          test -n "${{ vars.COSMOS_EXISTING_CLUSTER }}" || (echo "Missing vars.COSMOS_EXISTING_CLUSTER" && exit 1)
+
+      - name: Create resource group
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          LOCATION="${{ vars.AZURE_LOCATION || 'westeurope' }}"
+          PREFIX="${{ vars.BICEP_PREFIX }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          RESOURCE_GROUP_NAME="rg-${PREFIX}-${ENVIRONMENT}"
+
+          az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}"
+
   deploy:
+    needs: create_resource_group
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
 
@@ -57,6 +92,7 @@ jobs:
           COSMOS_RG="${{ vars.COSMOS_EXISTING_RG }}"
           COSMOS_CLUSTER="${{ vars.COSMOS_EXISTING_CLUSTER }}"
           DEPLOY_KV="${{ vars.DEPLOY_KEY_VAULT || 'false' }}"
+          RESOURCE_GROUP_NAME="rg-${PREFIX}-${ENVIRONMENT}"
           TAGS_JSON=$(printf '{"project":"kayhong","environment":"%s","managedBy":"github-actions-bicep"}' "${ENVIRONMENT}")
 
           # Admin password is only needed when a new Cosmos cluster is created.
@@ -71,6 +107,7 @@ jobs:
             --template-file infra/bicep/main.bicep
             --parameters
             prefix="${PREFIX}"
+            resourceGroupName="${RESOURCE_GROUP_NAME}"
             location="${LOCATION}"
             repositoryUrl="${REPO_URL}"
             env="${ENVIRONMENT}"

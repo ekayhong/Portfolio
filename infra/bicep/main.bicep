@@ -30,8 +30,8 @@ param deployKeyVault bool = false
 var rgName = empty(resourceGroupName) ? 'rg-${prefix}-${env}' : resourceGroupName
 var existingCosmosConnectionString = existingCosmos.?properties.?connectionString ?? ''
 
-// Create or ensure resource group (subscription scope deploys can create RG)
-module rg './modules/rg.bicep' = {
+// Create the RG only when it is not supplied externally.
+module rg './modules/rg.bicep' = if (empty(resourceGroupName)) {
   name: 'rg'
   scope: subscription()
   params: {
