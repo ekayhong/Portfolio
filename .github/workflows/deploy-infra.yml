@@ -49,7 +49,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          LOCATION="${{ vars.AZURE_LOCATION || 'francecentral' }}"
+          LOCATION="${{ vars.AZURE_LOCATION || 'westeurope' }}"
           PREFIX="${{ vars.BICEP_PREFIX }}"
           REPO_URL="${{ vars.REPOSITORY_URL || format('https://github.com/{0}', github.repository) }}"
           ENVIRONMENT="${{ github.event.inputs.environment }}"
