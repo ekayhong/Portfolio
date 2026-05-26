@@ -42,7 +42,7 @@ const envSchema = z.object({
     .min(1, "SMTP_PORT must be >= 1")
     .max(65535, "SMTP_PORT must be <= 65535")
     .default(587),
-  SMTP_SECURE: boolFromEnv.default("false"),
+  SMTP_SECURE: boolFromEnv.default(false),
   SMTP_USER: z.string().min(1, "SMTP_USER is required"),
   SMTP_PASS: z.string().min(1, "SMTP_PASS is required"),
   MAIL_FROM: z.string().min(1, "MAIL_FROM is required").email("MAIL_FROM must be a valid email"),
