@@ -7,6 +7,9 @@ resource swa 'Microsoft.Web/staticSites@2022-03-01' = {
   location: location
   sku: {
     name: 'Free'
+    tier: 'Free'
+  }
+  properties: {
   }
 }
 
