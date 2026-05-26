@@ -1,6 +1,6 @@
 # Déploiement & configuration CI/CD
 
-Ce guide décrit les étapes pour configurer les secrets GitHub, créer l'App Registration Azure (OIDC) et exécuter les workflows CI/CD fournis.
+Ce guide décrit les étapes pour configurer les secrets GitHub et exécuter les workflows CI/CD fournis.
 
 Prérequis
 - `gh` (GitHub CLI) installé et connecté
@@ -36,29 +36,14 @@ scripts\set-github-secrets.ps1 -Force`
   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `MAIL_TO`
   - `ADMIN_API_KEY`
   - `NEXT_PUBLIC_CV_PDF_URL`, `NEXT_PUBLIC_CV_DOCX_URL` (si externes)
-  - `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` (pour OIDC)
-  - `STATIC_WEBAPP_NAME`, `APP_ARTIFACT_LOCATION`, `STATIC_WEBAPP_RESOURCE_GROUP`
+  - `AZURE_STATIC_WEB_APPS_API_TOKEN` (token de déploiement Static Web Apps)
   - Optionnel: `COSMOS_ADMIN_PASSWORD` (si la création d'un cluster Cosmos est requise)
 
-2) Créer App Registration + Federated Credential (OIDC)
-
-- Portal (recommandé):
-  1. Azure Portal → Azure Active Directory → App registrations → New registration.
-  2. Noter `Application (client) ID` et `Directory (tenant) ID`.
-  3. Azure Portal → Subscriptions or Resource Group → Access control (IAM) → Add role assignment: donner `Contributor` ou un rôle adapté au SP.
-  4. Azure AD → App registrations → ta app → Certificates & secrets → Federated credentials → Add a credential:
-     - Issuer: `GitHub`
-     - Subject: `repo:OWNER/REPO:ref:refs/heads/main` (ou `repo:OWNER/REPO:*` pour plusieurs branches)
-     - Audience: `api://AzureADTokenExchange`
-  5. Copier `client-id` (`AZURE_CLIENT_ID`) et `tenant-id` (`AZURE_TENANT_ID`) dans les Secrets GitHub.
-
-3) Activer et tester les workflows
+2) Activer et tester les workflows
 
 - Infra (Bicep): utilise le workflow `Deploy Infra (Bicep)` accessible dans `.github/workflows/deploy-infra.yml`. Il utilise OIDC (azure/login) pour s'authentifier.
 
-- Application: deux options:
-  - Action officielle (déjà présente): `.github/workflows/deploy.yml` — pratique et conservée.
-  - Version OIDC (optionnelle): `.github/workflows/deploy-app-oidc.yml` — utilise `azure/login` + `az staticwebapp upload`.
+- Application: utilise le workflow `.github/workflows/deploy.yml` pour déployer la Static Web App.
 
 - Pour tester: créer une branche `ci/test`, pousser un commit, ouvrir une PR vers `main` et vérifier les logs des workflows.
 
