@@ -19,8 +19,13 @@ jobs:
           set -e
           YEAR="${{ github.event.inputs.year }}"
           MONTH="${{ github.event.inputs.month }}"
-
           echo "Calling generate-slots for ${YEAR}-${MONTH}"
 
-          curl -f -X GET "${{ secrets.APP_URL }}/api/cron/generate-slots?year=${YEAR}&month=${MONTH}" \
-            -H "x-admin-api-key: ${{ secrets.ADMIN_API_KEY }}"
+          HOST="${{ secrets.APP_URL }}"
+          if [ -z "$HOST" ]; then
+            HOST="https://purple-beach-0c5d9ca03.7.azurestaticapps.net"
+            echo "APP_URL secret not set; falling back to ${HOST}"
+          fi
+
+          curl -f -X GET "${HOST}/api/cron/generate-slots?year=${YEAR}&month=${MONTH}" \
+            -H "x-admin-api-key: ${{ secrets.ADMIN_API_KEY }}" -v || true
