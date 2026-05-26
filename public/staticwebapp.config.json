@@ -1,9 +1,10 @@
 {
-  "responseOverrides": {
-    "/cv/*": {
+  "routes": [
+    {
+      "route": "/cv/*",
       "headers": {
         "content-disposition": "attachment"
       }
     }
-  }
+  ]
 }
