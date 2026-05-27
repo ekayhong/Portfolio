@@ -28,6 +28,8 @@ const copy: Record<Locale, {
   recipient: string;
   verificationLabel: string;
   verificationHint: string;
+  verificationMissing: string;
+  verificationUnavailable: string;
 }> = {
   fr: {
     title: "Envoyer un email",
@@ -44,6 +46,8 @@ const copy: Record<Locale, {
     recipient: "Destinataire",
     verificationLabel: "Vérification anti-spam",
     verificationHint: "Un contrôle discret protège ce formulaire des robots.",
+    verificationMissing: "Turnstile n'est pas configuré pour cet environnement.",
+    verificationUnavailable: "Le contrôle anti-spam n'a pas pu être chargé.",
   },
   en: {
     title: "Send an email",
@@ -60,6 +64,8 @@ const copy: Record<Locale, {
     recipient: "Recipient",
     verificationLabel: "Anti-spam check",
     verificationHint: "A discreet check helps keep bots away.",
+    verificationMissing: "Turnstile is not configured in this environment.",
+    verificationUnavailable: "The anti-spam check could not be loaded.",
   },
 };
 
@@ -70,6 +76,7 @@ export function EmailContactModal({ email, locale, triggerClassName, triggerLabe
   const [feedback, setFeedback] = useState("");
   const [done, setDone] = useState(false);
   const [turnstileReady, setTurnstileReady] = useState(false);
+  const [turnstileLoadFailed, setTurnstileLoadFailed] = useState(false);
   const turnstileRef = useRef<HTMLDivElement | null>(null);
   const turnstileWidgetId = useRef<string | number | null>(null);
 
@@ -170,6 +177,7 @@ export function EmailContactModal({ email, locale, triggerClassName, triggerLabe
           setOpen(true);
           setFeedback("");
           setDone(false);
+          setTurnstileLoadFailed(false);
         }}
       >
         {triggerLabel}
@@ -202,6 +210,7 @@ export function EmailContactModal({ email, locale, triggerClassName, triggerLabe
                   src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
                   strategy="afterInteractive"
                   onLoad={() => setTurnstileReady(true)}
+                  onError={() => setTurnstileLoadFailed(true)}
                 />
                 <input name="name" placeholder={t.name} required minLength={2} />
                 <input name="email" type="email" placeholder={t.email} required />
@@ -218,7 +227,15 @@ export function EmailContactModal({ email, locale, triggerClassName, triggerLabe
                 <div className="contact-modal__turnstile">
                   <span className="contact-modal__anti-spam-label">{t.verificationLabel}</span>
                   <p className="contact-modal__anti-spam-hint">{t.verificationHint}</p>
-                  <div ref={turnstileRef} className="contact-modal__turnstile-widget" />
+                  {turnstileSiteKey ? (
+                    turnstileLoadFailed ? (
+                      <div className="contact-modal__turnstile-fallback">{t.verificationUnavailable}</div>
+                    ) : (
+                      <div ref={turnstileRef} className="contact-modal__turnstile-widget" />
+                    )
+                  ) : (
+                    <div className="contact-modal__turnstile-fallback">{t.verificationMissing}</div>
+                  )}
                 </div>
                 {feedback ? <p className="contact-modal__feedback">{feedback}</p> : null}
                 <div className="contact-modal__actions">
