@@ -17,12 +17,16 @@ export class SendContactMessageUseCase {
   async execute(rawInput: SendContactMessageInput): Promise<SendContactMessageResult> {
     const input = inputSchema.parse(rawInput);
 
-    await this.mailer.sendContactMessage({
-      senderName: input.senderName,
-      senderEmail: input.senderEmail,
-      subject: input.subject,
-      message: input.message,
-    });
+    // Send email but do not let SMTP failures block the API response.
+    // This mirrors the non-blocking behaviour used for booking confirmation emails.
+    this.mailer
+      .sendContactMessage({
+        senderName: input.senderName,
+        senderEmail: input.senderEmail,
+        subject: input.subject,
+        message: input.message,
+      })
+      .catch(() => undefined);
 
     return { ok: true };
   }
