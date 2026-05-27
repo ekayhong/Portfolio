@@ -220,10 +220,22 @@ export function EmailContactModal({ email, locale, triggerClassName, triggerLabe
                   onLoad={() => setTurnstileReady(true)}
                   onError={() => setTurnstileLoadFailed(true)}
                 />
-                <input name="name" placeholder={t.name} required minLength={2} />
-                <input name="email" type="email" placeholder={t.email} required />
-                <input name="subject" placeholder={t.subject} />
-                <textarea name="message" placeholder={t.message} rows={5} required minLength={10} />
+                <label className="form-field">
+                  <span className="form-field__label">{t.name}</span>
+                  <input name="name" required minLength={2} />
+                </label>
+                <label className="form-field">
+                  <span className="form-field__label">{t.email}</span>
+                  <input name="email" type="email" required />
+                </label>
+                <label className="form-field">
+                  <span className="form-field__label">{t.subject}</span>
+                  <input name="subject" />
+                </label>
+                <label className="form-field">
+                  <span className="form-field__label">{t.message}</span>
+                  <textarea name="message" rows={5} required minLength={10} />
+                </label>
                 <input
                   className="contact-modal__honeypot"
                   name="website"

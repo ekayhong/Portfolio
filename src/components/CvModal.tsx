@@ -29,11 +29,18 @@ export function CvModal({ pdfUrl, label, downloadLabel }: Props) {
                 <button className="slot-modal__close" onClick={() => setOpen(false)}>✕</button>
               </div>
             </div>
-            <iframe
-              src={pdfUrl}
-              className="cv-modal__iframe"
-              title="CV"
-            />
+            <div className="cv-modal__iframe-container">
+              <object
+                data={pdfUrl}
+                type="application/pdf"
+                className="cv-modal__iframe"
+              >
+                <div className="cv-modal__pdf-fallback">
+                  <p>Votre navigateur ne peut pas afficher le PDF.</p>
+                  <a className="btn btn--primary" href={pdfUrl} target="_blank" rel="noreferrer">Ouvrir le PDF</a>
+                </div>
+              </object>
+            </div>
           </div>
         </div>
       )}
