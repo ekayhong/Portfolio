@@ -1,4 +1,4 @@
-import { readEnv } from "@/core/infrastructure/config/env";
+import { readTurnstileSecretKey } from "@/core/infrastructure/config/env";
 
 type TurnstileVerificationResponse = {
   success: boolean;
@@ -8,7 +8,7 @@ type TurnstileVerificationResponse = {
 };
 
 export async function verifyTurnstileToken(token: string, remoteIp?: string): Promise<boolean> {
-  const secret = readEnv().turnstileSecretKey;
+  const secret = readTurnstileSecretKey();
 
   if (!secret) {
     return true;

@@ -1,13 +1,13 @@
 import nodemailer from "nodemailer";
 import { Mailer } from "@/core/domain/ports/Mailer";
-import { readEnv } from "@/core/infrastructure/config/env";
+import { readMailEnv } from "@/core/infrastructure/config/env";
 
 export class SmtpMailer implements Mailer {
   private transport: nodemailer.Transporter | null = null;
-  private env: ReturnType<typeof readEnv> | null = null;
+  private env: ReturnType<typeof readMailEnv> | null = null;
 
   private getEnv() {
-    return (this.env ??= readEnv());
+    return (this.env ??= readMailEnv());
   }
 
   private getTransport(): nodemailer.Transporter {

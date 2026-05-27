@@ -15,6 +15,16 @@ type Env = {
   turnstileSecretKey: string;
 };
 
+type MailEnv = {
+  smtpHost: string;
+  smtpPort: number;
+  smtpSecure: boolean;
+  smtpUser: string;
+  smtpPass: string;
+  mailFrom: string;
+  mailTo: string;
+};
+
 type PublicEnv = {
   cvPdfUrl: string;
   cvDocxUrl: string;
@@ -69,6 +79,25 @@ const envSchema = z.object({
   TURNSTILE_SECRET_KEY: z.string().default(""),
 });
 
+const mailEnvSchema = z.object({
+  SMTP_HOST: z.string().min(1, "SMTP_HOST is required"),
+  SMTP_PORT: z.coerce
+    .number()
+    .int("SMTP_PORT must be an integer")
+    .min(1, "SMTP_PORT must be >= 1")
+    .max(65535, "SMTP_PORT must be <= 65535")
+    .default(587),
+  SMTP_SECURE: boolFromEnv,
+  SMTP_USER: z.string().min(1, "SMTP_USER is required"),
+  SMTP_PASS: z.string().min(1, "SMTP_PASS is required"),
+  MAIL_FROM: z.string().min(1, "MAIL_FROM is required").email("MAIL_FROM must be a valid email"),
+  MAIL_TO: z.string().min(1, "MAIL_TO is required").email("MAIL_TO must be a valid email"),
+});
+
+const turnstileEnvSchema = z.object({
+  TURNSTILE_SECRET_KEY: z.string().default(""),
+});
+
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_CV_PDF_URL: z.string().default(""),
   NEXT_PUBLIC_CV_DOCX_URL: z.string().default(""),
@@ -115,6 +144,34 @@ export function readEnv(): Env {
   };
 
   return cachedEnv;
+}
+
+export function readMailEnv(): MailEnv {
+  const parsed = mailEnvSchema.safeParse(process.env);
+
+  if (!parsed.success) {
+    throw formatValidationError("mail", parsed.error.issues);
+  }
+
+  return {
+    smtpHost: parsed.data.SMTP_HOST,
+    smtpPort: parsed.data.SMTP_PORT,
+    smtpSecure: parsed.data.SMTP_SECURE,
+    smtpUser: parsed.data.SMTP_USER,
+    smtpPass: parsed.data.SMTP_PASS,
+    mailFrom: parsed.data.MAIL_FROM,
+    mailTo: parsed.data.MAIL_TO,
+  };
+}
+
+export function readTurnstileSecretKey(): string {
+  const parsed = turnstileEnvSchema.safeParse(process.env);
+
+  if (!parsed.success) {
+    throw formatValidationError("turnstile", parsed.error.issues);
+  }
+
+  return parsed.data.TURNSTILE_SECRET_KEY;
 }
 
 export function readPublicEnv(): PublicEnv {
