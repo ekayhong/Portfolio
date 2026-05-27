@@ -82,6 +82,14 @@ export function EmailContactModal({ email, locale, triggerClassName, triggerLabe
 
   const t = copy[locale];
 
+  // Debug: print the public Turnstile site key at runtime to help diagnose
+  // why the widget isn't rendering in production. This is safe because the
+  // site key is public by design. Remove after debugging.
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("NEXT_PUBLIC_TURNSTILE_SITE_KEY:", turnstileSiteKey);
+  }, [turnstileSiteKey]);
+
   useEffect(() => {
     if (!open || !turnstileReady || !turnstileSiteKey || !turnstileRef.current) {
       return undefined;
