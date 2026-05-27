@@ -43,7 +43,8 @@ export async function POST(request: NextRequest) {
 
     const result = await container.sendContactMessageUseCase.execute(body);
     return NextResponse.json(result);
-  } catch {
+  } catch (err) {
+    console.error("[contact] error:", err);
     return NextResponse.json({ ok: false, reason: "invalid_request" }, { status: 400 });
   }
 }
