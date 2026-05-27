@@ -26,15 +26,28 @@ export async function verifyTurnstileToken(token: string, remoteIp?: string): Pr
     payload.set("remoteip", remoteIp);
   }
 
-  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST",
-    body: payload,
-  });
+  const timeout = setTimeout(() => undefined, 5000);
+  const controller = new AbortController();
+  timeout.unref?.();
+  const abortTimeout = setTimeout(() => controller.abort(), 5000);
 
-  if (!response.ok) {
+  try {
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body: payload,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = (await response.json()) as TurnstileVerificationResponse;
+    return data.success;
+  } catch {
     return false;
+  } finally {
+    clearTimeout(timeout);
+    clearTimeout(abortTimeout);
   }
-
-  const data = (await response.json()) as TurnstileVerificationResponse;
-  return data.success;
 }

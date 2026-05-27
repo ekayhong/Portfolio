@@ -141,20 +141,24 @@ export function EmailContactModal({ email, locale, triggerClassName, triggerLabe
       turnstileToken,
     };
 
-    const response = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    if (response.ok) {
-      setDone(true);
-      event.currentTarget.reset();
-    } else {
+      if (response.ok) {
+        setDone(true);
+        event.currentTarget.reset();
+      } else {
+        setFeedback(t.error);
+      }
+    } catch {
       setFeedback(t.error);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
