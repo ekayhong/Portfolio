@@ -179,15 +179,10 @@ export function readPublicEnv(): PublicEnv {
     return cachedPublicEnv;
   }
 
-  const parsed = publicEnvSchema.safeParse(process.env);
-  if (!parsed.success) {
-    throw formatValidationError("public", parsed.error.issues);
-  }
-
   cachedPublicEnv = {
-    cvPdfUrl: parsed.data.NEXT_PUBLIC_CV_PDF_URL,
-    cvDocxUrl: parsed.data.NEXT_PUBLIC_CV_DOCX_URL,
-    turnstileSiteKey: parsed.data.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+    cvPdfUrl: process.env.NEXT_PUBLIC_CV_PDF_URL ?? "",
+    cvDocxUrl: process.env.NEXT_PUBLIC_CV_DOCX_URL ?? "",
+    turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
   };
 
   return cachedPublicEnv;
