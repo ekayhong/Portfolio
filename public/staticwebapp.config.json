@@ -1,7 +1,13 @@
 {
   "routes": [
     {
-      "route": "/cv/*",
+      "route": "/cv/*.pdf",
+      "headers": {
+        "content-disposition": "inline"
+      }
+    },
+    {
+      "route": "/cv/*.docx",
       "headers": {
         "content-disposition": "attachment"
       }
