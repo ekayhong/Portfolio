@@ -861,6 +861,19 @@ a {
   border-radius: 0 0 var(--radius) var(--radius);
 }
 
+/* Ensure the iframe container and the embedded object expand to fill
+   the remaining modal height. `min-height: 0` is required for some
+   browsers to allow flex children to shrink properly. */
+.cv-modal__iframe-container {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.cv-modal__iframe {
+  height: 100%;
+}
+
 .cv-modal__pdf-fallback {
   display: flex;
   flex-direction: column;
