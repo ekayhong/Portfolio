@@ -95,7 +95,7 @@ export function EmailContactModal({ email, locale, triggerClassName, triggerLabe
       sitekey: turnstileSiteKey,
       theme: "light",
       size: "flexible",
-      appearance: "interaction-only",
+      appearance: "always",
     });
 
     return () => {
