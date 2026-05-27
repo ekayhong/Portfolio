@@ -45,7 +45,7 @@ const copy: Record<Locale, {
     close: "Fermer",
     recipient: "Destinataire",
     verificationLabel: "Vérification anti-spam",
-    verificationHint: "Un contrôle discret protège ce formulaire des robots.",
+    verificationHint: "",
     verificationMissing: "Turnstile n'est pas configuré pour cet environnement.",
     verificationUnavailable: "Le contrôle anti-spam n'a pas pu être chargé.",
   },
@@ -63,7 +63,7 @@ const copy: Record<Locale, {
     close: "Close",
     recipient: "Recipient",
     verificationLabel: "Anti-spam check",
-    verificationHint: "A discreet check helps keep bots away.",
+    verificationHint: "",
     verificationMissing: "Turnstile is not configured in this environment.",
     verificationUnavailable: "The anti-spam check could not be loaded.",
   },
@@ -234,7 +234,6 @@ export function EmailContactModal({ email, locale, triggerClassName, triggerLabe
                 />
                 <div className="contact-modal__turnstile">
                   <span className="contact-modal__anti-spam-label">{t.verificationLabel}</span>
-                  <p className="contact-modal__anti-spam-hint">{t.verificationHint}</p>
                   {turnstileSiteKey ? (
                     turnstileLoadFailed ? (
                       <div className="contact-modal__turnstile-fallback">{t.verificationUnavailable}</div>
