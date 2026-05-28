@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getContainer } from "@/core/infrastructure/di/container";
-import { readEnv } from "@/core/infrastructure/config/env";
+import { readAdminApiKey } from "@/core/infrastructure/config/env";
 
 export async function PUT(request: NextRequest) {
   try {
-    const env = readEnv();
+    const adminApiKey = readAdminApiKey();
     const apiKey = request.headers.get("x-admin-api-key");
-    if (!apiKey || apiKey !== env.adminApiKey) {
+    if (!apiKey || apiKey !== adminApiKey) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

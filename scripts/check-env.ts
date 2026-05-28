@@ -2,7 +2,7 @@ import path from "node:path";
 
 import { loadEnvConfig } from "@next/env";
 
-import { readEnv, readPublicEnv } from "../src/core/infrastructure/config/env";
+import { readAdminApiKey, readEnv, readMailEnv, readPublicEnv } from "../src/core/infrastructure/config/env";
 
 function main(): void {
   const projectRoot = path.resolve(process.cwd());
@@ -11,6 +11,8 @@ function main(): void {
   loadEnvConfig(projectRoot);
 
   readEnv();
+  readAdminApiKey();
+  readMailEnv();
   readPublicEnv();
 
   console.log("Environment configuration is valid.");

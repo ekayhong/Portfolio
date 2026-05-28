@@ -4,6 +4,13 @@ on:
   schedule:
     - cron: "0 6 15 * *"
   workflow_dispatch:
+    inputs:
+      year:
+        description: Target year for manual runs
+        required: false
+      month:
+        description: Target month (1-12) for manual runs
+        required: false
 
 jobs:
   generate:
@@ -11,5 +18,18 @@ jobs:
     steps:
       - name: Call generate-slots endpoint
         run: |
-          curl -f -X GET "${{ secrets.APP_URL }}/api/cron/generate-slots" \
+          set -e
+
+          URL="${{ secrets.APP_URL }}/api/cron/generate-slots"
+          YEAR="${{ github.event.inputs.year }}"
+          MONTH="${{ github.event.inputs.month }}"
+
+          if [ -n "$YEAR" ] && [ -n "$MONTH" ]; then
+            URL="${URL}?year=${YEAR}&month=${MONTH}"
+            echo "Manual run for ${YEAR}-${MONTH}"
+          else
+            echo "Scheduled run using the default target month"
+          fi
+
+          curl -f -X GET "$URL" \
             -H "x-admin-api-key: ${{ secrets.ADMIN_API_KEY }}"

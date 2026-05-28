@@ -4,15 +4,6 @@ type Env = {
   mongoUri: string;
   mongoDatabase: string;
   mongoCollection: string;
-  smtpHost: string;
-  smtpPort: number;
-  smtpSecure: boolean;
-  smtpUser: string;
-  smtpPass: string;
-  mailFrom: string;
-  mailTo: string;
-  adminApiKey: string;
-  turnstileSecretKey: string;
 };
 
 type MailEnv = {
@@ -63,20 +54,6 @@ const envSchema = z.object({
     ),
   MONGODB_DATABASE: z.string().min(1).default("portfolio"),
   MONGODB_COLLECTION: z.string().min(1).default("slots"),
-  SMTP_HOST: z.string().min(1, "SMTP_HOST is required"),
-  SMTP_PORT: z.coerce
-    .number()
-    .int("SMTP_PORT must be an integer")
-    .min(1, "SMTP_PORT must be >= 1")
-    .max(65535, "SMTP_PORT must be <= 65535")
-    .default(587),
-  SMTP_SECURE: boolFromEnv,
-  SMTP_USER: z.string().min(1, "SMTP_USER is required"),
-  SMTP_PASS: z.string().min(1, "SMTP_PASS is required"),
-  MAIL_FROM: z.string().min(1, "MAIL_FROM is required").email("MAIL_FROM must be a valid email"),
-  MAIL_TO: z.string().min(1, "MAIL_TO is required").email("MAIL_TO must be a valid email"),
-  ADMIN_API_KEY: z.string().min(1, "ADMIN_API_KEY is required"),
-  TURNSTILE_SECRET_KEY: z.string().default(""),
 });
 
 const mailEnvSchema = z.object({
@@ -132,18 +109,19 @@ export function readEnv(): Env {
     mongoUri: parsed.data.MONGODB_URI,
     mongoDatabase: parsed.data.MONGODB_DATABASE,
     mongoCollection: parsed.data.MONGODB_COLLECTION,
-    smtpHost: parsed.data.SMTP_HOST,
-    smtpPort: parsed.data.SMTP_PORT,
-    smtpSecure: parsed.data.SMTP_SECURE,
-    smtpUser: parsed.data.SMTP_USER,
-    smtpPass: parsed.data.SMTP_PASS,
-    mailFrom: parsed.data.MAIL_FROM,
-    mailTo: parsed.data.MAIL_TO,
-    adminApiKey: parsed.data.ADMIN_API_KEY,
-    turnstileSecretKey: parsed.data.TURNSTILE_SECRET_KEY,
   };
 
   return cachedEnv;
+}
+
+export function readAdminApiKey(): string {
+  const value = process.env.ADMIN_API_KEY?.trim();
+
+  if (!value) {
+    throw new Error("ADMIN_API_KEY is required");
+  }
+
+  return value;
 }
 
 export function readMailEnv(): MailEnv {

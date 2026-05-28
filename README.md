@@ -151,7 +151,7 @@ Le projet exécute une tâche planifiée pour générer les créneaux (`generate
 	- `secrets.APP_URL` et `secrets.ADMIN_API_KEY` doivent être configurés dans les Secrets du repo GitHub.
 	- L'endpoint doit valider `x-admin-api-key` et être idempotent (ne pas créer de doublons).
 	- Si vous préférez éviter une route publique, envisagez d'ajouter une vérification IP ou un mécanisme d'authentification plus robuste.
-- **Déclenchement manuel** : `workflow_dispatch` est activé dans le workflow — tu peux lancer la job manuellement depuis l'onglet Actions du repo ou via l'API GitHub.
+- **Déclenchement manuel** : le workflow `.github/workflows/cron-slots.yml` est aussi lançable à la main via `workflow_dispatch`. Renseigne `year` et `month` pour cibler un mois précis, par exemple `2026` et `7` pour juillet.
 - **Alternatives** : si tu veux externaliser le scheduler chez Azure (par exemple pour centraliser dans l'infra Azure), tu peux utiliser :
 	- Azure Functions Timer Trigger (exécution côté Azure), ou
 	- Azure Logic Apps / Azure Automation.
