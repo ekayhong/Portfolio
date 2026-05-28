@@ -20,7 +20,13 @@ jobs:
         run: |
           set -e
 
-          URL="${{ secrets.APP_URL }}/api/cron/generate-slots"
+          HOST="${{ secrets.APP_URL }}"
+          if [ -z "$HOST" ]; then
+            HOST="https://purple-beach-0c5d9ca03.7.azurestaticapps.net"
+            echo "APP_URL secret not set; falling back to ${HOST}"
+          fi
+
+          URL="${HOST}/api/cron/generate-slots"
           YEAR="${{ github.event.inputs.year }}"
           MONTH="${{ github.event.inputs.month }}"
 
