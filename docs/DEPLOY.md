@@ -39,6 +39,11 @@ scripts\set-github-secrets.ps1 -Force`
   - `AZURE_STATIC_WEB_APPS_API_TOKEN` (token de déploiement Static Web Apps)
   - Optionnel: `COSMOS_ADMIN_PASSWORD` (si la création d'un cluster Cosmos est requise)
 
+- Important pour l'environnement de production Azure Static Web Apps:
+  - Les variables server-side doivent aussi être définies comme app settings de la Static Web App.
+  - Utilise `az staticwebapp appsettings set` ou les scripts `scripts/set-swa-app-settings.ps1` / `scripts/set-swa-app-settings.sh`.
+  - Les settings critiques sont `MONGODB_URI`, `MONGODB_DATABASE`, `MONGODB_COLLECTION`, `SMTP_*`, `MAIL_*`, `ADMIN_API_KEY`, `TURNSTILE_SECRET_KEY`.
+
 2) Activer et tester les workflows
 
 - Infra (Bicep): utilise le workflow `Deploy Infra (Bicep)` accessible dans `.github/workflows/deploy-infra.yml`. Il utilise OIDC (azure/login) pour s'authentifier.
