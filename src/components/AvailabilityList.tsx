@@ -66,12 +66,20 @@ export function AvailabilityList({ locale, copy }: Props) {
 
   const fetchSlots = useCallback(() => {
     fetch("/api/slots")
-      .then((r) => r.json())
-      .then((data) => {
+      .then(async (response) => {
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error ?? copy.loadError);
+        }
+
         setSlots(data.slots ?? []);
         setStatus("");
       })
-      .catch(() => setStatus(copy.loadError));
+      .catch((error: any) => {
+        console.error("[availability] failed to load slots:", error);
+        setStatus(error?.message ?? copy.loadError);
+      });
   }, [copy.loadError]);
 
   useEffect(() => {
